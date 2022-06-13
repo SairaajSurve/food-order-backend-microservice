@@ -1,0 +1,5 @@
+{
+    "scripts": {
+        "dev": "concurrently \"cd ./customer && npm run dev\" \"cd ./products && npm run dev\" \"cd ./shopping && npm run dev\" \"cd ./gateaway && npm run dev\""
+    }
+}
