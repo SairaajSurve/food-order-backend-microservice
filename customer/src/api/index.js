@@ -1,5 +1,5 @@
 
 module.exports = {
     customer: require('./customer'),
-    appEvents: require('./app-event')
+    appEvents: require('./app-events')
 }
