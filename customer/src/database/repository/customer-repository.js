@@ -58,11 +58,8 @@ class CustomerRepository {
     async FindCustomerById({ id }){
 
         try {
-            const existingCustomer = await CustomerModel.findById(id)
-            .populate('address')
-            .populate('wishlist')
-            .populate('orders')
-            .populate('cart.product');
+            const existingCustomer = await CustomerModel.findById(id).populate('address')
+            
             return existingCustomer;
         } catch (err) {
             throw APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Find Customer');
@@ -79,11 +76,15 @@ class CustomerRepository {
         }
     }
 
-    async AddWishlistItem(customerId, product){
+    async AddWishlistItem(customerId, {_id, name, desc, price, available, banner}){
         
+        const product = {
+            _id, name, desc, price, available, banner
+        }
+
         try{
             const profile = await CustomerModel.findById(customerId).populate('wishlist');
-           
+        
             if(profile){
     
                  let wishlist = profile.wishlist;
@@ -120,16 +121,16 @@ class CustomerRepository {
     }
 
 
-    async AddCartItem(customerId, product, qty, isRemove){
+    async AddCartItem(customerId, {_id, name, price, banner}, qty, isRemove){
 
         try{
 
-            const profile = await CustomerModel.findById(customerId).populate('cart.product');
+            const profile = await CustomerModel.findById(customerId).populate('cart');
     
             if(profile){ 
      
                 const cartItem = {
-                    product,
+                    product: {_id, name, price, banner},
                     unit: qty,
                 };
               
@@ -159,7 +160,7 @@ class CustomerRepository {
     
                 const cartSaveResult = await profile.save();
 
-                return cartSaveResult.cart;
+                return cartSaveResult;
             }
             
             throw new Error('Unable to add to cart!');
