@@ -22,7 +22,7 @@ const CartSchema = new Schema({
 },
     {
         toJSON: {
-            transform(doc, ret) {
+            transform (doc, ret) {
                 delete ret.__v;
             }
         },
