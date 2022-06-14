@@ -78,7 +78,6 @@ class ProductService {
     async GetProductPayload(userId, { productId, qty}, event) {
 
         const product = await this.repository.FindById(productId);
-
         if(product) {
             const payload = {
                 event: event,

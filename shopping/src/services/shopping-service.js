@@ -8,7 +8,7 @@ class ShoppingService {
         this.repository = new ShoppingRepository();
     }
     
-    async getCart({_id}) {
+    async GetCart({_id}) {
         try {
             const cartItems = await this.repository.Cart(_id);
 
@@ -66,7 +66,6 @@ class ShoppingService {
     async SubscribeEvents(payload){
  
         const { event, data } =  payload;
-
         const { userId, product, qty } = data;
 
         switch(event){

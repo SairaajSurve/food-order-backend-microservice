@@ -1,6 +1,6 @@
-const { CustomerModel, ProductModel, OrderModel, CartModel } = require('../models');
+const { OrderModel, CartModel } = require('../models');
 const { v4: uuidv4 } = require('uuid');
-const { APIError, BadRequestError } = require('../../utils/app-errors')
+const { APIError, BadRequestError, STATUS_CODES } = require('../../utils/app-errors')
 
 
 //Dealing with data base operations
@@ -13,7 +13,7 @@ class ShoppingRepository {
             const orders = await OrderModel.find({customerId });        
             return orders;
         }catch(err){
-            throw APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Find Orders')
+            throw new APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Find Orders')
         }
     }
     
@@ -22,7 +22,7 @@ class ShoppingRepository {
             const order = await OrderModel.findOne({orderId: orderId});        
             return order;
         }catch(err){
-            throw APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Find Orders')
+            throw new APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Find Orders')
         }
     }
 
@@ -45,8 +45,8 @@ class ShoppingRepository {
 
         try{
 
-            const cart = await CartModel.findOne(customerId);
-            
+            const cart = await CartModel.findOne({customerId: customerId});
+
             const { _id } = item;
 
             if(cart){ 
@@ -57,7 +57,7 @@ class ShoppingRepository {
                 
                 if(cartItems.length > 0){
                      cartItems.map(item => {
-                        if(item.product._id.toString() === product._id.toString()){
+                        if(item.product._id.toString() === _id.toString()){
                             if(isRemove){
                                 cartItems.splice(cartItems.indexOf(item), 1);
                             }else{
@@ -74,19 +74,22 @@ class ShoppingRepository {
                     cart.items = cartItems;
 
                     return await cart.save();
-
                 } else {
-                    return await CartModel.create({
-                        customerId,
-                        items: [{product: {...item}, unit: qty}]
-                    });
+                    cartItems.push({product: {...item}, unit: qty});
+                    return await cart.save();
                 }
+            } else {
+                return await CartModel.create({
+                    customerId,
+                    items: [{product: {...item}, unit: qty}]
+                });
             }
             
-            throw new Error('Unable to add to cart!');
+
 
         }catch(err){
-            throw APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Create Customer')
+
+            throw new APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Create Customer')
         }
 
     }
@@ -136,7 +139,7 @@ class ShoppingRepository {
           return {}
 
         }catch(err){
-            throw APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Find Category')
+            throw new APIError('API Error', STATUS_CODES.INTERNAL_ERROR, 'Unable to Find Category')
         }
         
 

@@ -39,8 +39,8 @@ const ErrorHandler = async(err,req,res,next) => {
     const errorLogger = new ErrorLogger();
 
     process.on('uncaughtException', (reason, promise) => {
-        console.log(reason, 'UNHANDLED');
-        throw reason; // need to take care
+        console.log('uncaughtException');
+        // throw reason; // need to take care
     })
 
     process.on('uncaughtException', (error) => {

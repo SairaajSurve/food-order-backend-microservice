@@ -7,7 +7,7 @@ module.exports = (app) => {
     const service = new ProductService();
 
 
-    app.post('/product/create', async(req,res,next) => {
+    app.post('/create', async(req,res,next) => {
         
         try {
             const { name, desc, type, unit,price, available, suplier, banner } = req.body; 
@@ -95,11 +95,11 @@ module.exports = (app) => {
 
     app.put('/cart',UserAuth, async (req,res,next) => {
         
-        const { _id} = req.user;
+        const userId = req.user._id;
         
         try {     
 
-            const { data } = await service.GetProductPayload(_id, {productId: req.body._id, qty: req.body.qty}, 'ADD_TO_CART');
+            const { data } = await service.GetProductPayload(userId, {productId: req.body._id, qty: req.body.qty}, 'ADD_TO_CART');
 
             PublishCustomerEvent(data);
             PublishShoppingEvent(data);
@@ -118,11 +118,11 @@ module.exports = (app) => {
     
     app.delete('/cart/:id',UserAuth, async (req,res,next) => {
 
-        const { _id } = req.user;
+        const userId = req.user._id;
         const productId = req.params.id;
 
         try {
-            const { data } = await service.GetProductPayload(_id, {productId}, 'REMOVE_FROM_CART');
+            const { data } = await service.GetProductPayload(userId, {productId, qty: 0}, 'REMOVE_FROM_CART');
 
             PublishCustomerEvent(data);
             PublishShoppingEvent(data);
