@@ -36,7 +36,7 @@ module.exports.ValidateSignature  = async(req) => {
         return false
 };
 
-module.exports.FormateData = (data) => {
+module.exports.FormatData = (data) => {
         if(data){
             return { data }
         }else{
