@@ -19,7 +19,7 @@ module.exports = (app, channel) => {
 
             const payload = await service.GetOrderPayload(_id, data, 'CREATE_ORDER');
 
-            PublishMessage(channel, CUSTOMER_BINDING_KEY, payload);
+            PublishMessage(channel, CUSTOMER_BINDING_KEY, JSON.stringify(payload));
 
             return res.status(200).json(data);
 
