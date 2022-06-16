@@ -1,60 +1,89 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const axios = require('axios');
+const amqblib = require('amqplib');
 
-const { APP_SECRET } = require('../config');
+const { APP_SECRET, MESSAGE_BROKER_URL, EXCHANGE_NAME, QUEUE_NAME, SHOPPING_BINDING_KEY } = require('../config');
 
 //Utility functions
 module.exports.GenerateSalt = async () => {
-        return await bcrypt.genSalt()
+	return await bcrypt.genSalt()
 },
 
-        module.exports.GeneratePassword = async (password, salt) => {
-                return await bcrypt.hash(password, salt);
-        };
+	module.exports.GeneratePassword = async (password, salt) => {
+		return await bcrypt.hash(password, salt);
+	};
 
 
 module.exports.ValidatePassword = async (enteredPassword, savedPassword, salt) => {
-        return await this.GeneratePassword(enteredPassword, salt) === savedPassword;
+	return await this.GeneratePassword(enteredPassword, salt) === savedPassword;
 };
 
 module.exports.GenerateSignature = async (payload) => {
-        return await jwt.sign(payload, APP_SECRET, { expiresIn: '1d' })
+	return await jwt.sign(payload, APP_SECRET, { expiresIn: '1d' })
 },
 
-        module.exports.ValidateSignature = async (req) => {
+	module.exports.ValidateSignature = async (req) => {
 
-                const signature = req.get('Authorization');
+		const signature = req.get('Authorization');
 
-                console.log(signature);
+		console.log(signature);
 
-                if (signature) {
-                        const payload = await jwt.verify(signature.split(' ')[1], APP_SECRET);
-                        req.user = payload;
-                        return true;
-                }
+		if (signature) {
+			const payload = await jwt.verify(signature.split(' ')[1], APP_SECRET);
+			req.user = payload;
+			return true;
+		}
 
-                return false
-        };
+		return false
+	};
 
 module.exports.FormatData = (data) => {
-        if (data) {
-                return { data }
-        } else {
-                throw new Error('Data Not found!')
-        }
+	if (data) {
+		return { data }
+	} else {
+		throw new Error('Data Not found!')
+	}
 }
 
-module.exports.PublishCustomerEvent = async (payload) => {
+/************* Message Broker ****************/
 
-        axios.post('http://localhost:8000/customer/app-events', {
-                payload
-        })
+// create a channel
+module.exports.CreateChannel = async () => {
+
+	try {
+		const connection = await amqblib.connect(MESSAGE_BROKER_URL);
+		console.log("Shopping connected to message broker");
+		const channel = await connection.createChannel();
+		await channel.assertExchange(EXCHANGE_NAME, 'direct', false);
+		return channel
+	} catch (error) {
+		throw (error)
+	}
 }
 
-module.exports.PublishShoppingEvent = async (payload) => {
+// publish messages
+module.exports.PublishMessage = async (channel, binding_key, message) => {
 
-        axios.post('http://localhost:8000/shopping/app-events', {
-                payload
-        })
+	try {
+		await channel.publish(EXCHANGE_NAME, binding_key, Buffer.from(message));
+		console.log("Message sent by Shopping: " + message);
+	} catch (error) {
+		throw (error)
+	}
+}
+
+// subscribe messages
+module.exports.SubscribeMessage = async (channel, service) => {
+
+
+	const appQueue = await channel.assertQueue(QUEUE_NAME);
+
+
+	channel.bindQueue(appQueue.queue, EXCHANGE_NAME, SHOPPING_BINDING_KEY);
+
+	channel.consume(appQueue.queue, (data) => {
+		console.log("Received data in Shopping Service");
+		console.log(data.content.toString());
+		channel.ack(data)
+	})
 }
