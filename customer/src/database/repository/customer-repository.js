@@ -6,6 +6,13 @@ class CustomerRepository {
 
     async CreateCustomer ({ email, password, phone, salt }) {
         try {
+
+            const existingCustomer = await CustomerModel.findOne({ email: email });
+            // console.log(existingCustomer);
+            if( existingCustomer ) {
+                return {"data": "Customer with email already exists"}
+            }
+
             const customer = new CustomerModel({
                 email,
                 password,

@@ -65,7 +65,8 @@ module.exports.CreateChannel = async ()=> {
 module.exports.PublishMessage = async (channel, binding_key, message)=> {
 
 	try {
-		await channel.publish(EXCHANGE_NAME, binding_key, Buffer.from(message))
+		await channel.publish(EXCHANGE_NAME, binding_key, Buffer.from(message));
+                console.log("Message sent by Products: "+message);
 	} catch (error) {
 		throw(error)
 	}
@@ -74,11 +75,13 @@ module.exports.PublishMessage = async (channel, binding_key, message)=> {
 // subscribe messages
 module.exports.SubscribeMessage = async (channel, service, binding_key)=> {
 	
+        
 	const appQueue = await channel.assertQueue('QUEUE_NAME');
+        
 
 	channel.bindQueue(appQueue.queue, EXCHANGE_NAME, binding_key);
 
-	channel.consume(appQueue, (data) => {
+	channel.consume(appQueue.queue, (data) => {
 		console.log("Received data");
 		console.log(data.content.toString());
 		channel.ack(data)

@@ -49,6 +49,10 @@ class CustomerService {
 
             const existingCustomer = await this.repository.CreateCustomer({ email, password: userPassword, phone, salt });
 
+            if (existingCustomer.data) {
+                return existingCustomer;
+            }
+
             const token = await GenerateSignature({ email: email, _id: existingCustomer._id });
 
             return FormatData({ id: existingCustomer._id, token });

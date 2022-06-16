@@ -139,6 +139,7 @@ module.exports = (app, channel) => {
         //check validation
         try {
             const { data } = await service.GetProducts();
+            console.log(data)
             return res.status(200).json(data);
         } catch (error) {
             next(err)
