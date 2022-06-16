@@ -4,9 +4,13 @@ WORKDIR /app/customer
 
 COPY package.json .
 
+COPY .env .
+
 RUN npm install
 
-COPY . .
+RUN mkdir src
+
+ADD src /src
 
 EXPOSE 8001
 
